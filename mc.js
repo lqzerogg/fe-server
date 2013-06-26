@@ -3,7 +3,7 @@ var util = require('util'),
     assert = require('assert'),
     port = 11211;
 
-mc = new memcache.Client(port, '172.16.0.46');
+mc = new memcache.Client(port, '127.0.0.1');
 mc.on('error', function(e){
 
 	if (e.errno == 111){
