@@ -1,12 +1,13 @@
-var util = require('util')
-	, mc = require('../mc').mc
+var util = require('util'),
+	mc = require('../mc').mc,
+	helper = require('../helper').helper
 
 var lastMinute
 
 exports.performance = function(req, res, next) {
-	res.set('Content-Type', 'image/jpeg')
-	res.send(200)
-	var minuteTime = parseMinuteTime(new Date())
+	res.set('Content-Type', 'text/html')
+	res.send('<body><script>setTimeout(function() {window.location.reload()}, 1000)</script></body>')
+	var minuteTime = helper.parseMinuteTime(new Date())
 		, result = parseReq(req)
 
 	if (!result)
@@ -20,9 +21,6 @@ exports.performance = function(req, res, next) {
 			console.log(err === null ? minuteTime + ' set' : err)
 		}, 120) // keep 2 minutes
 
-		// because the result key is always changing, store is as 'lastMinute'
-		lastMinute && mc.set('performance-last-minute', lastMinute, null, 60)
-
 		lastMinute = minuteTime;
 	}
 }
@@ -32,7 +30,7 @@ exports.getPerformance = function(req, res, next) {
 	if (typeof req.query.time !== 'undefined' && req.query.time) {
 		minuteTime = req.query.time
 	} else {
-		minuteTime = parseMinuteTime(new Date())
+		minuteTime = helper.parseMinuteTime(new Date())
 	}
 	mc.get(minuteTime, function(err, result) {
 		if (result)
@@ -81,10 +79,4 @@ function parseReq(req) {
 		return null;
 
 	return result
-}
-
-function parseMinuteTime(date) {
-	return date.getFullYear() + '/' + ('0'+(date.getMonth()+1)).slice(-2) + '/' + ('0'+date.getDate()).slice(-2)
-			+ ('0'+date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2) + ':00'
-
 }

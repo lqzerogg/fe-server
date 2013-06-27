@@ -1,34 +1,52 @@
 var util = require('util'),
 	mc = require('./mc').mc,
-	jQuery = require('./minJQuery').jQuery
-
+	jQuery = require('./minJQuery').jQuery,
+	helper = require('./helper').helper
 
 setInterval(function() {
-	mc.get('performance-last-minute', function(err, lastMinute) {
-		console.log(lastMinute)
-		if (!lastMinute)
+	var now = new Date()
+	now.setMinutes(now.getMinutes() - 1)
+	var lastMinute = helper.parseMinuteTime(now),
+		lastHour   = helper.parseHourTime(now)
+
+	mc.get(lastMinute, function(err, datas) {
+		if (!datas)
 			return
-		mc.get(lastMinute, function(err, datas) {
-			if (!datas)
-				return
-			datas = JSON.parse('[' + datas.replace(/,$/, '') + ']')
-			var i = 0, metric = {}, dims = []
-			for (i in datas) {
-				metric.networkLatency = data.networkLatency
-				metric.domReady       = data.domReady
-				metric.load           = data.load
+		mc.delete(lastMinute)
 
-				delete data.networkLatency
-				delete data.domReady
-				delete data.load
+		datas = JSON.parse('[' + datas.replace(/,$/, '') + ']')
+		var i = 0, j = 0, metric = {}, dims = [], key
+			allDatas = {}
+		for (i in datas) {
+			metric.networkLatency = datas[i].networkLatency
+			metric.domReady       = datas[i].domReady
+			metric.load           = datas[i].load
 
-				dims = extendDim(datas[i])
+			delete datas[i].networkLatency
+			delete datas[i].domReady
+			delete datas[i].load
 
-				mcData(dims, metric)
+			dims = extendDim(datas[i])
+
+			j = 0
+			for (j in dims) {
+				key = JSON.stringify(dims[j]).replace(/\s/g, '')
+				if (allDatas[key]) {
+					allDatas[key].networkLatency += metric.networkLatency
+					allDatas[key].domReady       += metric.domReady
+					allDatas[key].load           += metric.load
+					allDatas[key].count++
+				} else {
+					allDatas[key] = jQuery.extend({}, metric, {count: 1})
+				}
 			}
-		})
+		}
+
+		for (key in allDatas) {
+			mcDatas(lastHour + key, allDatas[key])
+		}
 	})
-}, 1 * 1000)
+}, 30 * 1000)
 
 
 function extendDim(data) {
@@ -50,23 +68,18 @@ function extendDim(data) {
 	return dims
 }
 
-function mcDatas(dims, metric) {
-	var i = 0, key
-	for (i in dims) {
-		key = JSON.stringify(dims[i]).replace(/\s/g, '')
-		mc.get(key, function(err, result) {
-			if (result) {
-				result = JSON.parse(result)
-				result.networkLatency += metric.networkLatency
-				result.domReady += metric.domReady
-				result.load += metric.load
-				result.count++
+function mcDatas(key, metric) {
+	mc.get(key, function(err, result) {
+		if (result) {
+			result = JSON.parse(result)
+			result.networkLatency += metric.networkLatency
+			result.domReady += metric.domReady
+			result.load += metric.load
+			result.count += metric.count
 
-				mc.replace(key, JSON.stringify(result))
-			} else {
-				metric.count = 1
-				mc.set(key, JSON.stringify(metric), null, 2 * 3600) // keep 2 hours
-			}
-		})
-	}
+			mc.replace(key, JSON.stringify(result))
+		} else {
+			mc.set(key, JSON.stringify(metric), function() {}, 2 * 3600) // keep 2 hours
+		}
+	})
 }
