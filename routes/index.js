@@ -5,8 +5,8 @@ var util = require('util'),
 var lastMinute
 
 exports.performance = function(req, res, next) {
-	res.set('Content-Type', 'text/html')
-	res.send('<body><script>setTimeout(function() {window.location.reload()}, 1000)</script></body>')
+	res.set('Content-Type', 'image/jpeg')
+	res.send(200)
 	var minuteTime = helper.parseMinuteTime(new Date())
 		, result = parseReq(req)
 
