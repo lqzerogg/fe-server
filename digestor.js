@@ -77,8 +77,10 @@ function mcDatas(key, metric) {
 			result.load += metric.load
 			result.count += metric.count
 
+			console.log('update ' + key)
 			mc.replace(key, JSON.stringify(result))
 		} else {
+			console.log('set ' + key)
 			mc.set(key, JSON.stringify(metric), function() {}, 2 * 3600) // keep 2 hours
 		}
 	})
