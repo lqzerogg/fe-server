@@ -15,7 +15,7 @@ setInterval(function() {
 		mc.delete(lastMinute)
 
 		datas = JSON.parse('[' + datas.replace(/,$/, '') + ']')
-		var i = 0, j = 0, metric = {}, dims = [], key
+		var i = 0, j = 0, metric = {}, dims = [], key,
 			allDatas = {}
 		for (i in datas) {
 			metric.networkLatency = datas[i].networkLatency
