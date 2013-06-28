@@ -51,7 +51,7 @@ setInterval(function() {
 
 function extendDim(data) {
 
-	var dim = jQuery.jsonToSortedArray(data),
+	var dim = helper.jsonToSortedArray(data),
 		i = 0,
 		dims = [{}]
 

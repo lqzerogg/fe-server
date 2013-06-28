@@ -5,8 +5,9 @@ var util = require('util'),
 var lastMinute
 
 exports.performance = function(req, res, next) {
-	res.set('Content-Type', 'image/jpeg')
-	res.send(200)
+	// response a 1*1 image
+	res.redirect('performance.jpg')
+
 	var minuteTime = helper.parseMinuteTime(new Date())
 		, result = parseReq(req)
 
