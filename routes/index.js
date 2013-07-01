@@ -1,12 +1,14 @@
 var util = require('util'),
 	mc = require('../mc').mc,
-	helper = require('../helper').helper
+	helper = require('../helper').helper,
+	uaParser = require('ua-parser')
 
 var lastMinute
 
 exports.performance = function(req, res, next) {
 	// response a 1*1 image
-	res.redirect('performance.jpg')
+	// TODO res.redirect('performance.jpg')
+	res.send(200)
 
 	var minuteTime = helper.parseMinuteTime(new Date())
 		, result = parseReq(req)
@@ -15,7 +17,7 @@ exports.performance = function(req, res, next) {
 		return
 	if (lastMinute === minuteTime) {
 		mc.append(minuteTime, JSON.stringify(result) + ',', function(err, response) {
-			console.log(err === null ? minuteTime + ' updated' : err)
+			console.log(err === null ? minuteTime + ' updated ' + response : err)
 		})
 	} else {
 		mc.set(minuteTime, JSON.stringify(result) + ',', function(err, response) {
@@ -43,41 +45,57 @@ exports.getPerformance = function(req, res, next) {
 
 function parseReq(req) {
 	var result = {}
-	if (typeof req.query.country === 'undefined' || !req.query.country)
+	if (!req.query.country)
 		return null
-	result.country    = req.query.country
+	result.country = req.query.country
 
-	if (typeof req.query.abTestType === 'undefined' || !req.query.abTestType)
+	if (!req.query.abTestType)
 		return null
 	result.abTestType = req.query.abTestType
 
-	if (typeof req.query.mainPage === 'undefined' || !req.query.mainPage)
+	if (!req.query.mainPage)
 		return null
-	result.mainPage   = req.query.mainPage
+	result.mainPage = req.query.mainPage
 
-	if (typeof req.query.pageTemplate !== 'undefined' && req.query.pageTemplate)
+	if (req.query.pageTemplate)
 		result.pageTemplate   = req.query.pageTemplate
 
-	if (typeof req.query.fetchStart === 'undefined' || !req.query.fetchStart || parseInt(req.query.fetchStart) === 0)
+	if (!req.query.fetchStart || parseInt(req.query.fetchStart) === 0)
 		return null
-	if (typeof req.query.responseEnd === 'undefined' || !req.query.responseEnd || parseInt(req.query.responseEnd) === 0)
+	if (!req.query.responseEnd || parseInt(req.query.responseEnd) === 0)
 		return null
 	result.networkLatency = parseInt(req.query.responseEnd) - parseInt(req.query.fetchStart)
 	if (isNaN(result.networkLatency) || result.networkLatency <= 0)
 		return null;
 
-	if (typeof req.query.domContentLoadedEventStart === 'undefined' || !req.query.domContentLoadedEventStart
-		|| parseInt(req.query.domContentLoadedEventStart) === 0)
+	if (!req.query.domContentLoadedEventStart || parseInt(req.query.domContentLoadedEventStart) === 0)
 		return null
-	result.domReady   = parseInt(req.query.domContentLoadedEventStart) - parseInt(req.query.fetchStart)
+	result.domReady = parseInt(req.query.domContentLoadedEventStart) - parseInt(req.query.fetchStart)
 	if (isNaN(result.domReady) || result.domReady <= 0)
 		return null;
 
-	if (typeof req.query.loadEventStart === 'undefined' || !req.query.loadEventStart || parseInt(req.query.loadEventStart) === 0)
+	if (!req.query.loadEventStart || parseInt(req.query.loadEventStart) === 0)
 		return null
-	result.load       = parseInt(req.query.loadEventStart) - parseInt(req.query.fetchStart)
+	result.load = parseInt(req.query.loadEventStart) - parseInt(req.query.fetchStart)
 	if (isNaN(result.load) || result.load <= 0)
 		return null;
+
+	var ua = uaParser.parse(req.headers['user-agent'])
+
+	if (ua.family === 'Other')
+		return result
+
+	if (ua.device.family === 'Other') { // PC
+		result.browser = ua.family.toLowerCase()
+		result.browserVersion = ua.major
+	} else { // Mobile
+		result.browser = 'm_' + ua.family.toLowerCase()
+		if (result.browser === 'm_android') {
+			result.browserVersion = ua.major + '.' + ua.minor
+		} else {
+			result.browserVersion = ua.major
+		}
+	}
 
 	return result
 }

@@ -19,7 +19,7 @@ mc.on('error', function(e){
 	}
 });
 mc.on('close', function(e) {
-	console.log(e)
+	e && console.log(e)
 })
 mc.on('connect', function(e) {
 	console.log('memcached connected')

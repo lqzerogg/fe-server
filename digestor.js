@@ -58,6 +58,16 @@ function extendDim(data) {
 	for (i in dim) {
 		var j = 0, tempDims = [], obj = {}
 		for (j in dims) {
+			// 'all' page should be with no template
+			if (dims[j]['mainPage'] === 'all' && dim[i]['pageTemplate']) {
+				tempDims[tempDims.length] = jQuery.extend({}, dims[j])
+				continue
+			}
+			// 'all' browser should be with no version
+			if (dims[j]['browser'] === 'all' && dim[i]['browserVersion']) {
+				tempDims[tempDims.length] = jQuery.extend({}, dims[j])
+				continue
+			}
 			tempDims[tempDims.length] = jQuery.extend({}, dims[j], dim[i])
 			obj[Object.keys(dim[i])[0]] = 'all'
 			tempDims[tempDims.length] = jQuery.extend({}, dims[j], obj)
