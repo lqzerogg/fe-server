@@ -4,13 +4,14 @@ var util = require('util'),
 	helper = require('./helper').helper
 
 var allDatas, lastMinute,
-	lastHour, pastHour, keyCount
+	lastHour, pastHour, keyCount,
+	HOURLY_TIMEOUT = 10 * 60
 
 setInterval(function() {
 	var now = new Date()
 	now.setMinutes(now.getMinutes() - 1)
 	lastMinute = helper.parseMinuteTime(now)
-	lastHour   = helper.parseHourTime(now)
+	lastHour   = helper.parse5MinuteTime(now)
 
 	if (pastHour !== lastHour) {
 		keyCount = 0
@@ -20,6 +21,7 @@ setInterval(function() {
 	mc.get(lastMinute, function(err, count) {
 		if (!count)
 			return
+		console.log('-------------------------' + lastMinute)
 		mc.delete(lastMinute)
 
 		count = parseInt(count)
@@ -27,13 +29,13 @@ setInterval(function() {
 		allDatas = {}
 
 		for (; count > 0; count--) {
-			makePiece(lastMinute, count)
+			makePiece(count)
 		}
 	})
 }, 30 * 1000)
 
 
-function makePiece(lastMinute, count) {
+function makePiece(count) {
 	var i, metric = {}, dims, key
 	mc.get(lastMinute + '-' + count, function(err, data) {
 		data = JSON.parse(data)
@@ -109,18 +111,18 @@ function mcDatas(key, metric) {
 			result.load += metric.load
 			result.count += metric.count
 
-			console.log('update ' + mcKey)
-			mc.replace(mcKey, JSON.stringify(result), function() {}, 2 * 3600)
+			// console.log('update ' + mcKey)
+			mc.replace(mcKey, JSON.stringify(result), function() {}, HOURLY_TIMEOUT)
 		} else {
-			console.log('set ' + mcKey)
-			mc.set(mcKey, JSON.stringify(metric), function() {}, 2 * 3600) // keep 2 hours
+			// console.log('set ' + mcKey)
+			mc.set(mcKey, JSON.stringify(metric), function() {}, HOURLY_TIMEOUT) // keep 2 hours
 
 			// store keys
 			mc.set(lastHour + '-' + ++keyCount, key, function(err, response) {
-				console.log(err === null ? lastHour + ' set key ' + key + ' ' + response : err)
-			}, 2 * 3600) // keep 2 minutes
+				// console.log(err === null ? lastHour + ' set key ' + key + ' ' + response : err)
+			}, HOURLY_TIMEOUT) // keep 2 minutes
 
-			mc.set(lastHour, keyCount, function() {}, 2 * 3600)
+			mc.set(lastHour, keyCount, function() {}, HOURLY_TIMEOUT)
 		}
 	})
 }

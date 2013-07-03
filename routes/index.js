@@ -7,15 +7,15 @@ var lastMinute, count
 
 exports.performance = function(req, res, next) {
 	// response a 1*1 image
-	res.redirect('performance.jpg')
-	//res.send(200)
+	// TODO res.redirect('performance.jpg')
+	res.send(200)
 
 	var minuteTime = helper.parseMinuteTime(new Date())
 		, result = parseReq(req)
 
 	if (!result)
 		return
-
+	
 	if (lastMinute !== minuteTime) {
 		count = 0
 		lastMinute = minuteTime;
