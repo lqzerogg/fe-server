@@ -3,7 +3,7 @@ var util = require('util'),
 	helper = require('../helper').helper,
 	uaParser = require('ua-parser')
 
-var lastMinute
+var lastMinute, count
 
 exports.performance = function(req, res, next) {
 	// response a 1*1 image
@@ -15,17 +15,17 @@ exports.performance = function(req, res, next) {
 
 	if (!result)
 		return
-	if (lastMinute === minuteTime) {
-		mc.append(minuteTime, JSON.stringify(result) + ',', function(err, response) {
-			console.log(err === null ? minuteTime + ' updated ' + response : err)
-		})
-	} else {
-		mc.set(minuteTime, JSON.stringify(result) + ',', function(err, response) {
-			console.log(err === null ? minuteTime + ' set' : err)
-		}, 120) // keep 2 minutes
-
+	
+	if (lastMinute !== minuteTime) {
+		count = 0
 		lastMinute = minuteTime;
 	}
+
+	mc.set(minuteTime + '-' + ++count, JSON.stringify(result), function(err, response) {
+		console.log(err === null ? minuteTime + ' set ' + response : err)
+	}, 120) // keep 2 minutes
+
+	mc.set(minuteTime, count, function() {}, 120)
 }
 
 exports.getPerformance = function(req, res, next) {
