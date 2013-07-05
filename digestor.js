@@ -5,13 +5,15 @@ var util = require('util'),
 
 var allDatas, lastMinute,
 	lastHour, pastHour, keyCount,
-	HOURLY_TIMEOUT = 10 * 60
+	// HOURLY_TIMEOUT = 10 * 60
+	HOURLY_TIMEOUT = 2 * 60 * 60
 
 setInterval(function() {
 	var now = new Date()
 	now.setMinutes(now.getMinutes() - 1)
 	lastMinute = helper.parseMinuteTime(now)
-	lastHour   = helper.parse5MinuteTime(now)
+	// lastHour   = helper.parse5MinuteTime(now)
+	lastHour   = helper.parseHourTime(now)
 
 	if (pastHour !== lastHour) {
 		keyCount = 0
@@ -21,7 +23,7 @@ setInterval(function() {
 	mc.get(lastMinute, function(err, count) {
 		if (!count)
 			return
-		console.log('-------------------------' + lastMinute)
+		console.log(lastMinute + ' success')
 		mc.delete(lastMinute)
 
 		count = parseInt(count)
@@ -92,8 +94,11 @@ function extendDim(data) {
 				continue
 			}
 			tempDims[tempDims.length] = jQuery.extend({}, dims[j], dim[i])
-			obj[Object.keys(dim[i])[0]] = 'all'
-			tempDims[tempDims.length] = jQuery.extend({}, dims[j], obj)
+			// there is not 'all' dimension of site
+			if (!dim[i]['site']) {
+				obj[Object.keys(dim[i])[0]] = 'all'
+				tempDims[tempDims.length] = jQuery.extend({}, dims[j], obj)
+			}
 		}
 		dims = tempDims
 	}
@@ -112,7 +117,7 @@ function mcDatas(key, metric) {
 			result.count += metric.count
 
 			// console.log('update ' + mcKey)
-			mc.replace(mcKey, JSON.stringify(result), function() {}, HOURLY_TIMEOUT)
+			mc.replace(mcKey, JSON.stringify(result), function() {}, HOURLY_TIMEOUT) // keep 2 hours
 		} else {
 			// console.log('set ' + mcKey)
 			mc.set(mcKey, JSON.stringify(metric), function() {}, HOURLY_TIMEOUT) // keep 2 hours
@@ -120,7 +125,7 @@ function mcDatas(key, metric) {
 			// store keys
 			mc.set(lastHour + '-' + ++keyCount, key, function(err, response) {
 				// console.log(err === null ? lastHour + ' set key ' + key + ' ' + response : err)
-			}, HOURLY_TIMEOUT) // keep 2 minutes
+			}, HOURLY_TIMEOUT) // keep 2 hours
 
 			mc.set(lastHour, keyCount, function() {}, HOURLY_TIMEOUT)
 		}

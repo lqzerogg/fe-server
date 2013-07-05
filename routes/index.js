@@ -7,8 +7,8 @@ var lastMinute, count
 
 exports.performance = function(req, res, next) {
 	// response a 1*1 image
-	// TODO res.redirect('performance.jpg')
-	res.send(200)
+	res.redirect('performance.jpg')
+	// res.send(200)
 
 	var minuteTime = helper.parseMinuteTime(new Date())
 		, result = parseReq(req)
@@ -22,7 +22,10 @@ exports.performance = function(req, res, next) {
 	}
 
 	mc.set(minuteTime + '-' + ++count, JSON.stringify(result), function(err, response) {
-		console.log(err === null ? minuteTime + ' set ' + response : err)
+		if (err) {
+			console.log(minuteTime)
+			console.log(err)
+		}
 	}, 120) // keep 2 minutes
 
 	mc.set(minuteTime, count, function() {}, 120)
@@ -45,6 +48,11 @@ exports.getPerformance = function(req, res, next) {
 
 function parseReq(req) {
 	var result = {}
+
+	if (!req.query.site)
+		return null
+	result.site = req.query.site
+
 	if (!req.query.country)
 		return null
 	result.country = req.query.country
