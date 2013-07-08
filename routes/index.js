@@ -1,14 +1,17 @@
 var util = require('util'),
 	mc = require('../mc').mc,
 	helper = require('../helper').helper,
-	uaParser = require('ua-parser')
+	uaParser = require('ua-parser'),
+	fs = require('fs')
+
+var IMAGE_BUF = fs.readFileSync('public/performance.jpg')
 
 var lastMinute, count
 
 exports.performance = function(req, res, next) {
 	// response a 1*1 image
-	res.redirect('performance.jpg')
-	// res.send(200)
+	res.set('Content-Type', 'image/jpeg');
+	res.send(IMAGE_BUF)
 
 	var minuteTime = helper.parseMinuteTime(new Date())
 		, result = parseReq(req)
