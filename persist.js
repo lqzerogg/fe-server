@@ -68,6 +68,7 @@ var dataUtil = function() {
 			user     : 'fe_admin',
 			password : '123456',
 			database : 'fe_platform',
+			insecureAuth: true,
 			timezone : '+0000'
 		})
 
@@ -99,3 +100,7 @@ var dataUtil = function() {
 
 	return this
 }()
+
+dataUtil.getResult('select 1', function(result) {
+	console.log(result)
+})
