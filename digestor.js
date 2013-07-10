@@ -8,6 +8,10 @@ var allDatas, lastMinute,
 	// HOURLY_TIMEOUT = 10 * 60
 	HOURLY_TIMEOUT = 2 * 60 * 60
 
+/*
+	Check request count of last minute every half a minute.
+	Then handle each request in sequence.
+*/
 setInterval(function() {
 	var now = new Date()
 	now.setMinutes(now.getMinutes() - 1)
@@ -37,6 +41,10 @@ setInterval(function() {
 }, 30 * 1000)
 
 
+/*
+	Get one request from memcache and accumulate metrics with all other requests group by dimension.
+	Store accumulated data into memcache after handling the last request.
+*/
 function makePiece(count) {
 	var i, metric = {}, dims, key
 	mc.get(lastMinute + '-' + count, function(err, data) {
@@ -73,9 +81,21 @@ function makePiece(count) {
 	})
 }
 
+/*
+	Extend a single dimension to multiple dimensions with sorted keys
 
+	Example
+		data: {"site": "mini", "mainPage": "product-info", "pageTemplate": 3, "country": "us"}
+		return: [
+					{"country": "us", "mainPage": "product-info", "pageTemplate": 3, "site": "mini"},
+					{"country": "all", "mainPage": "product-info", "pageTemplate": 3, "site": "mini"},
+					{"country": "us", "mainPage": "product-info", "pageTemplate": "all", "site": "mini"},
+					{"country": "all", "mainPage": "product-info", "pageTemplate": "all", "site": "mini"},
+					{"country": "us", "mainPage": "all", "site": "mini"},
+					{"country": "all", "mainPage": "all", "site": "mini"}
+				]
+*/
 function extendDim(data) {
-
 	var dim = helper.jsonToSortedArray(data),
 		i = 0,
 		dims = [{}]
@@ -106,6 +126,38 @@ function extendDim(data) {
 	return dims
 }
 
+/*
+	Store data into memcache.
+
+	If the key already exists, then update value by accumulating the metrics and the count.
+	Otherwise put a new key:value pair and store the key using the hour and sequential number of the key in that hour.
+
+	Example
+		call 1 at 2013/06/20 00:10:39 ===================================
+		key: {"site":"litb", "country":"us" ...}
+		metric: {"networkLatency": ..., "domReady": ..., "load": ..., "count": 1}
+
+		The key is not existing, then
+		store value       {{"site":"litb", "country":"us" ...}: {"networkLatency": ..., "domReady": ..., "load": ..., "count": 1}}
+		store key         {'2013/06/2000:00:00-1': key}
+		store key's count {'2013/06/2000:00:00': 1}
+
+		call 2 at 2013/06/20 00:20:43 ===================================
+		key: {"site":"litb", "country":"us" ...}
+		metric: {"networkLatency": ..., "domReady": ..., "load": ..., "count": 1}
+
+		Because of the key exist already, then
+		update value      {{"site":"litb", "country":"us" ...}: {"networkLatency": ..., "domReady": ..., "load": ..., "count": 2}}
+
+		call 3 at 2013/06/20 00:30:27 ===================================
+		key: {"site":"litb", "country":"br" ...}
+		metric: {"networkLatency": ..., "domReady": ..., "load": ..., "count": 1}
+
+		The key is not existing, then
+		store value       {{"site":"litb", "country":"br" ...}: {"networkLatency": ..., "domReady": ..., "load": ..., "count": 1}}
+		store key         {'2013/06/2000:00:00-2': key}
+		store key's count {'2013/06/2000:00:00': 2}
+*/
 function mcDatas(key, metric) {
 	var mcKey = lastHour + '-' + key
 	mc.get(mcKey, function(err, result) {

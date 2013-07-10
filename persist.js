@@ -14,6 +14,20 @@ var SQLTemplate = 'insert into fe_hourly_performance \
 		where browser.browser = \'{{browser}}\' and abtag.name = \'{{abTestType}}\' and country.country = \'{{country}}\' and \
 		page.page = \'{{mainPage}}\' and site.site = \'{{site}}\')'
 
+/*
+	Store data of last hour into mysql every half an hour.
+
+	Example
+		Data in memcache like this:
+		{'2013/06/2000:00:00-{"country": "us", "mainPage": "all", "site": "mini"}': {"networkLatency": 1000, "domReady": 3000, "load": 5000, count: 1}}
+		{'2013/06/2000:00:00-{"country": "all", "mainPage": "all", "site": "mini"}': {"networkLatency": 2000, "domReady": 6000, "load": 10000, count: 2}}
+		{'2013/06/2000:00:00-1': {"country": "us", "mainPage": "all", "site": "mini"}}
+		{'2013/06/2000:00:00-2': {"country": "all", "mainPage": "all", "site": "mini"}}
+		{'2013/06/2000:00:00': 2}
+
+		Then get the count first.
+		Then get the dimension key and then get the metric in sequence.
+*/
 setInterval(function() {
 	var now = new Date()
 	// now.setMinutes(now.getMinutes() - 5)
@@ -34,6 +48,9 @@ setInterval(function() {
 	})
 }, 30 * 60 * 1000)
 
+/*
+	Get one dimension's metric and store it into mysql.
+*/
 function persist(count) {
 	mc.get(lastHour + '-' + count, function(err, key) {
 		if (!key)
