@@ -81,9 +81,9 @@ var dataUtil = function() {
 
 	var db = function() {
 		var pool = mysql.createPool({
-			host     : '192.168.61.97',
+			host     : 'localhost',
 			user     : 'fe_admin',
-			password : '123456',
+			password : 'litb_fe_admin',
 			database : 'fe_platform',
 			insecureAuth: true,
 			timezone : '+0000'

@@ -1,7 +1,7 @@
 exports.helper = {
 	parseMinuteTime: function(date) {
 		return date.getFullYear() + '/' + ('0'+(date.getMonth()+1)).slice(-2) + '/' + ('0'+date.getDate()).slice(-2)
-				+ ('0'+date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2) + ':00'
+				+ ('0'+date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2) + ':00~'
 	},
 
 	parseHourTime: function(date) {
@@ -13,7 +13,7 @@ exports.helper = {
 		var minute = date.getMinutes()
 		date.setMinutes(parseInt(minute / 5) * 5)
 		return date.getFullYear() + '/' + ('0'+(date.getMonth()+1)).slice(-2) + '/' + ('0'+date.getDate()).slice(-2)
-				+ ('0'+date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2) + ':00~'
+				+ ('0'+date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2) + ':00'
 	},
 
 	// Sort object by keys and export to an array, not supported before ie9
