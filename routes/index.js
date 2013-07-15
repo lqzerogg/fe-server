@@ -133,11 +133,11 @@ function parseReq(req) {
 	if (ua.family === 'Other')
 		return null
 
-	if (ua.device.family === 'Other') { // PC
+	if (ua.device.family === 'Other' && ua.family.search(/Mobile/i) === -1) { // PC
 		result.browser = ua.family.toLowerCase()
 		result.browserVersion = ua.major
 	} else { // Mobile
-		result.browser = 'm_' + ua.family.toLowerCase()
+		result.browser = 'm_' + ua.family.toLowerCase().replace(/mobile/g, '').trim()
 		if (result.browser === 'm_android') {
 			result.browserVersion = ua.major + '.' + ua.minor
 		} else {
