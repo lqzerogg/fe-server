@@ -99,7 +99,10 @@ function parseReq(req) {
 
 	if (!req.query.abTestType)
 		return null
-	result.abTestType = req.query.abTestType
+	result.abTestType =
+		req.query.abTestType === 'AMTest' ? 'ATest'
+	  : req.query.abTestType === 'BMTest' ? 'BTest'
+	  : req.query.abTestType
 
 	if (!req.query.mainPage)
 		return null
