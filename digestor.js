@@ -104,19 +104,24 @@ function extendDim(data) {
 		var j = 0, tempDims = [], obj = {}
 		for (j in dims) {
 			// 'all' page should be with no template
-			if (dims[j]['mainPage'] === 'all' && dim[i]['pageTemplate']) {
+			if ((dims[j]['mainPage'] === 'all' || dims[j]['mainPage'] === 'm_all') && dim[i]['pageTemplate']) {
 				tempDims[tempDims.length] = jQuery.extend({}, dims[j])
 				continue
 			}
 			// 'all' browser should be with no version
-			if (dims[j]['browser'] === 'all' && dim[i]['browserVersion']) {
+			if ((dims[j]['browser'] === 'all' || dims[j]['browser'] === 'm_all') && dim[i]['browserVersion']) {
 				tempDims[tempDims.length] = jQuery.extend({}, dims[j])
 				continue
 			}
 			tempDims[tempDims.length] = jQuery.extend({}, dims[j], dim[i])
 			// there is not 'all' dimension of site
 			if (!dim[i]['site']) {
-				obj[Object.keys(dim[i])[0]] = 'all'
+				if ((dim[i]['mainPage'] && dim[i]['mainPage'].search(/m_/) === 0)
+					|| (dim[i]['browser'] && dim[i]['browser'].search(/m_/) === 0)) {
+					obj[Object.keys(dim[i])[0]] = 'm_all'
+				} else {
+					obj[Object.keys(dim[i])[0]] = 'all'
+				}
 				tempDims[tempDims.length] = jQuery.extend({}, dims[j], obj)
 			}
 		}

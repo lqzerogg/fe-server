@@ -104,6 +104,9 @@ function parseReq(req) {
 	if (!req.query.mainPage)
 		return null
 	result.mainPage = req.query.mainPage
+	if (result.site.search(/m_/) === 0) {
+		result.mainPage = 'm_' + result.mainPage
+	}
 
 	if (req.query.pageTemplate)
 		result.pageTemplate   = req.query.pageTemplate
