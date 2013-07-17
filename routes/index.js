@@ -119,19 +119,19 @@ function parseReq(req) {
 	if (!req.query.responseEnd || parseInt(req.query.responseEnd) === 0)
 		return null
 	result.networkLatency = parseInt(req.query.responseEnd) - parseInt(req.query.fetchStart)
-	if (isNaN(result.networkLatency) || result.networkLatency <= 0)
+	if (isNaN(result.networkLatency) || result.networkLatency <= 0 || result.networkLatency > 1000000)
 		return null;
 
 	if (!req.query.domContentLoadedEventStart || parseInt(req.query.domContentLoadedEventStart) === 0)
 		return null
 	result.domReady = parseInt(req.query.domContentLoadedEventStart) - parseInt(req.query.fetchStart)
-	if (isNaN(result.domReady) || result.domReady <= 0)
+	if (isNaN(result.domReady) || result.domReady <= 0 || result.domReady > 1000000)
 		return null;
 
 	if (!req.query.loadEventStart || parseInt(req.query.loadEventStart) === 0)
 		return null
 	result.load = parseInt(req.query.loadEventStart) - parseInt(req.query.fetchStart)
-	if (isNaN(result.load) || result.load <= 0)
+	if (isNaN(result.load) || result.load <= 0 || result.load > 1000000)
 		return null;
 
 	var ua = uaParser.parse(req.headers['user-agent'])
