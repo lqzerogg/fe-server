@@ -20,7 +20,7 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
-app.get('/performance', routes.performance);
+app.get('/performance/easyhack', routes.performance);
 app.get('/get_performance', routes.getPerformance);
 
 http.createServer(app).listen(app.get('port'), function(){
